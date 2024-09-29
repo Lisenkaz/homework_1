@@ -175,7 +175,32 @@ class CommandLineEmulator:
 
     def wc(self):
         # Метод для реализации команды wc
-        pass
+        command_parts = self.command_input.get().strip().split(' ', 1)  # Разделяем ввод на команду и аргумент
+        if len(command_parts) > 1:  # Проверяем, был ли указан файл
+            file_name = command_parts[1]  # Получаем имя файла
+            try:
+                # Формируем полный путь к файлу
+                file_path = os.path.join(self.current_directory, file_name)
+                with open(file_path, 'r', encoding='utf-8') as f:  # Открываем файл для чтения с указанием кодировки
+                    content = f.read()  # Читаем содержимое файла
+                    lines = content.splitlines()  # Разбиваем содержимое на строки
+                    word_count = len(content.split())  # Подсчитываем количество слов
+                    char_count = len(content)  # Подсчитываем количество символов
+                    
+                    # Выводим результаты в текстовое поле
+                    self.output_area.insert(tk.END, f"{len(lines)} lines, {word_count} words, {char_count} characters in '{file_name}'\n")
+            except FileNotFoundError:
+                # Если файл не найден, выводим сообщение об ошибке
+                self.output_area.insert(tk.END, f"wc: {file_name}: No such file or directory\n")
+            except PermissionError:
+                # Если нет прав доступа к файлу, выводим сообщение об ошибке
+                self.output_area.insert(tk.END, f"wc: {file_name}: Permission denied\n")
+            except Exception as e:
+                # Обработка других ошибок, которые могут возникнуть
+                self.output_area.insert(tk.END, f"wc: error: {str(e)}\n")
+        else:
+            # Если аргумент не был указан, выводим сообщение о необходимости указания имени файла
+            self.output_area.insert(tk.END, "wc: missing argument\n")
 
     def run_startup_script(self):
         # Метод для выполнения стартового скрипта
