@@ -152,7 +152,26 @@ class CommandLineEmulator:
 
     def mkdir(self):
         # Метод для реализации команды mkdir
-        pass
+        command_parts = self.command_input.get().strip().split(' ', 1)  # Разделяем ввод на команду и аргумент
+        if len(command_parts) > 1:  # Проверяем, был ли указан новый путь
+            new_directory = command_parts[1]  # Получаем имя новой директории
+            try:
+                # Формируем полный путь к новой директории
+                new_path = os.path.join(self.current_directory, new_directory)
+                os.makedirs(new_path)  # Создаем новую директорию
+                self.output_area.insert(tk.END, f"Directory '{new_directory}' created.\n")  # Подтверждаем создание
+            except FileExistsError:
+                # Если директория уже существует, выводим сообщение об ошибке
+                self.output_area.insert(tk.END, f"mkdir: cannot create directory '{new_directory}': File exists\n")
+            except PermissionError:
+                # Если возникает ошибка доступа, выводим сообщение об ошибке
+                self.output_area.insert(tk.END, f"mkdir: cannot create directory '{new_directory}': Permission denied\n")
+            except Exception as e:
+                # Обработка других ошибок
+                self.output_area.insert(tk.END, f"mkdir: error: {str(e)}\n")
+        else:
+            # Если аргумент не был указан, выводим сообщение о необходимости указания имени директории
+            self.output_area.insert(tk.END, "mkdir: missing argument\n")
 
     def wc(self):
         # Метод для реализации команды wc
