@@ -121,7 +121,34 @@ class CommandLineEmulator:
 
     def tree(self):
         # Метод для реализации команды tree
-        pass
+        try:
+            # Получаем список файлов и подкаталогов в текущей директории
+            entries = os.listdir(self.current_directory)
+        except PermissionError:
+            # Обрабатываем ошибку доступа
+            self.output_area.insert(tk.END, f"Permission denied: {self.current_directory}\n")
+            return
+        except Exception as e:
+            # Обрабатываем другие ошибки
+            self.output_area.insert(tk.END, f"Error accessing directory: {str(e)}\n")
+            return
+
+        total_files = 0  # Счетчик для общего количества файлов
+        total_dirs = 0   # Счетчик для общего количества подкаталогов
+
+        # Выводим содержимое текущей директории
+        for entry in entries:
+            entry_path = os.path.join(self.current_directory, entry)  # Формируем полный путь к элементу
+            if os.path.isdir(entry_path):  # Если элемент является директорией
+                self.output_area.insert(tk.END, f"[{entry}]\n")  # Выводим имя директории
+                total_dirs += 1  # Увеличиваем счетчик подкаталогов
+            else:  # Если элемент является файлом
+                self.output_area.insert(tk.END, f"{entry}\n")  # Выводим имя файла
+                total_files += 1  # Увеличиваем счетчик файлов
+
+        # Выводим сводку
+        self.output_area.insert(tk.END, f"\nTotal directories: {total_dirs}\n")  # Общее количество подкаталогов
+        self.output_area.insert(tk.END, f"Total files: {total_files}\n")  # Общее количество файлов
 
     def mkdir(self):
         # Метод для реализации команды mkdir
