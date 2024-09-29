@@ -117,7 +117,7 @@ class CommandLineEmulator:
 
     def exit(self):
         # Метод для выхода из эмулятора
-        self.root.quit()  # Закрываем графическое окно
+        self.root.destroy()  # Закрываем графическое окно
 
     def tree(self):
         # Метод для реализации команды tree

@@ -1,0 +1,5 @@
+mkdir Projects
+cd Projects
+mkdir Project1
+cd Project1
+echo "Hello, World!" > hello.txt
