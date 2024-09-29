@@ -4,23 +4,27 @@ import tkinter as tk  # Импортируем tkinter для создания �
 from tkinter import scrolledtext  # Импортируем виджет для прокручиваемого текстового поля
 import xml.etree.ElementTree as ET  # Импортируем модуль для работы с XML
 from datetime import datetime  # Импортируем модуль для работы с датой и временем
-
 class CommandLineEmulator:
     def __init__(self, root, username, hostname, vfs_path, log_path, startup_script):
         self.root = root  # Сохраняем ссылку на главное окно
         self.root.title("Command Line Emulator")  # Устанавливаем заголовок окна
-        
+        self.root.geometry("800x600")  # Устанавливаем фиксированный размер окна
+
+         # Создаем контейнер для текстового поля и поля ввода
+        self.frame = tk.Frame(root, bg='black')  # Создаем рамку с черным фоном
+        self.frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)  # Упаковываем рамку, чтобы она занимала все доступное пространство
+    
         # Создание текстового поля для отображения вывода
-        self.output_area = scrolledtext.ScrolledText(root, wrap=tk.WORD, state='disabled', height=20, width=50)
-        self.output_area.pack(padx=10, pady=10)
+        self.output_area = scrolledtext.ScrolledText(self.frame, wrap=tk.WORD, state='normal', height=20, width=50, bg='black', fg='white', insertbackground='white')  # Устанавливаем черный фон и белый текст
+        self.output_area.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)  # Упаковываем текстовое поле, чтобы оно занимало все доступное пространство
         
         # Создание поля для ввода команд
-        self.command_input = tk.Entry(root, width=50)
-        self.command_input.pack(padx=10, pady=10)
+        self.command_input = tk.Entry(self.frame, width=50, bg='black', fg='white')  # Поле ввода с черным фоном и белым текстом
+        self.command_input.pack(padx=10, pady=10, fill=tk.X)  # Упаковываем поле ввода, чтобы оно занимало всю ширину
         self.command_input.bind('<Return>', self.process_command)  # Привязываем нажатие Enter к обработке команды
         
         # Создание кнопки
-        self.submit_button = tk.Button(root, text="Submit", command=self.process_command)
+        self.submit_button = tk.Button(root, text="Submit", command=self.process_command, bg='black', fg='white')  # Кнопка с черным фоном и белым текстом
         self.submit_button.pack(padx=10, pady=10)
 
         self.username = username  # Имя пользователя
@@ -58,8 +62,8 @@ class CommandLineEmulator:
 
     def process_command(self, event=None):
         # Метод для выполнения введенной команды
-        command = self.command_input.get().strip()  # Получаем текст из поля ввода и убираем лишние пробелы
-        if command:  # Проверяем, что команда не пустая
+        command = self.command_input.get().strip()  # Получаем текст из поля ввода
+        if command:
             self.output_area.config(state='normal')  # Разрешаем редактирование
             self.output_area.insert(tk.END, f"{self.username}@{self.hostname}:{self.current_directory} $ {command}\n")  # Выводим команду
             
@@ -77,8 +81,8 @@ class CommandLineEmulator:
             elif command.startswith('wc '):
                 self.wc()  # Вызов метода wc
             else:
-                self.output_area.insert(tk.END, f"Command not found: {command}\n")  # Если команда не найдена, выводим сообщение
-            
+                self.output_area.insert(tk.END, f"Command not found: {command}\n")  # Если команда не найдена
+
             self.output_area.config(state='disabled')  # Запрещаем редактирование
             self.output_area.yview(tk.END)  # Прокручиваем вниз
             self.command_input.delete(0, tk.END)  # Очищаем поле ввода
@@ -118,9 +122,9 @@ class CommandLineEmulator:
     def exit(self):
         # Метод для выхода из эмулятора
         self.root.destroy()  # Закрываем графическое окно
-
+        
     def tree(self):
-        # Метод для реализации команды tree
+        # Метод для реализации команды tree (отображение структуры каталогов и файлов)
         try:
             # Получаем список файлов и подкаталогов в текущей директории
             entries = os.listdir(self.current_directory)
