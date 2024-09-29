@@ -58,15 +58,27 @@ class CommandLineEmulator:
 
     def process_command(self, event=None):
         # Метод для выполнения введенной команды
-        command = self.command_input.get()  # Получаем текст из поля ввода
-        if command:
+        command = self.command_input.get().strip()  # Получаем текст из поля ввода и убираем лишние пробелы
+        if command:  # Проверяем, что команда не пустая
             self.output_area.config(state='normal')  # Разрешаем редактирование
             self.output_area.insert(tk.END, f"{self.username}@{self.hostname}:{self.current_directory} $ {command}\n")  # Выводим команду
-            if command in self.commands:  # Проверяем, существует ли команда
-                self.commands[command]()  # Выполняем команду
-                self.output_area.insert(tk.END, f"Executed command: {command}\n")  # Выводим результат выполнения
+            
+            # Проверяем, какая команда была введена
+            if command.startswith('cd '):
+                self.cd()  # Вызов метода cd
+            elif command == 'ls':
+                self.ls()  # Вызов метода ls
+            elif command == 'exit':
+                self.exit()  # Вызов метода exit
+            elif command == 'tree':
+                self.tree()  # Вызов метода tree
+            elif command.startswith('mkdir '):
+                self.mkdir()  # Вызов метода mkdir
+            elif command.startswith('wc '):
+                self.wc()  # Вызов метода wc
             else:
                 self.output_area.insert(tk.END, f"Command not found: {command}\n")  # Если команда не найдена, выводим сообщение
+            
             self.output_area.config(state='disabled')  # Запрещаем редактирование
             self.output_area.yview(tk.END)  # Прокручиваем вниз
             self.command_input.delete(0, tk.END)  # Очищаем поле ввода
@@ -82,7 +94,26 @@ class CommandLineEmulator:
 
     def cd(self):
         # Метод для реализации команды cd
-        pass
+        command_parts = self.command_input.get().strip().split(' ', 1)  # Разделяем ввод на команду и аргумент
+        if len(command_parts) > 1:  # Проверяем, был ли указан новый путь
+            new_directory = command_parts[1]  # Получаем путь к директории
+            try:
+                # Проверяем, является ли новый путь абсолютным или относительным
+                if os.path.isabs(new_directory):
+                    new_path = new_directory  # Если абсолютный путь, используем его
+                else:
+                    # Получаем абсолютный путь, комбинируя текущую директорию и новую
+                    new_path = os.path.abspath(os.path.join(self.current_directory, new_directory))
+                
+                if os.path.isdir(new_path):  # Проверяем, существует ли директория
+                    self.current_directory = new_path  # Обновляем текущую директорию
+                    self.output_area.insert(tk.END, f"Changed directory to: {self.current_directory}\n")
+                else:
+                    self.output_area.insert(tk.END, f"cd: no such file or directory: {new_directory}\n")
+            except Exception as e:
+                self.output_area.insert(tk.END, f"cd: error: {str(e)}\n")
+        else:
+            self.output_area.insert(tk.END, "cd: missing argument\n")
 
     def exit(self):
         # Метод для выхода из эмулятора
@@ -115,6 +146,6 @@ if __name__ == "__main__":
         hostname="localhost",  # Указываем имя компьютера
         vfs_path="C:/Users/79372/Desktop/konf/homework_1/Files.tar",  # Указываем путь к архиву виртуальной файловой системы
         log_path="C:/Users/79372/Desktop/konf/homework_1/log.xml",  # Указываем путь к лог-файлу
-        startup_script="path/to/startup_script.txt"  # Указываем путь к стартовому скрипту
+        startup_script="C:/Users/79372/Desktop/konf/homework_1/startup_script.txt"  # Указываем путь к стартовому скрипту
     )
     root.mainloop()  # Запускаем главный цикл приложения
