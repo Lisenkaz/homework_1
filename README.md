@@ -73,4 +73,9 @@
 Команда wc
 ![8](https://github.com/user-attachments/assets/e7378671-9da8-46c5-a9d4-978f1469b8e6)
 
+<h2>Результаты прогона тестов</h2>
+
+Все тесты были успешно пройдены
+
+![9](https://github.com/user-attachments/assets/4da83eb2-ceea-4bc8-bbc0-41d60afb970c)
 
