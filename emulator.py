@@ -219,8 +219,8 @@ if __name__ == "__main__":
         root,
         username="user",  # Указываем имя пользователя
         hostname="localhost",  # Указываем имя компьютера
-        vfs_path="C:/Users/79372/Desktop/konf/homework_1/Files.tar",  # Указываем путь к архиву виртуальной файловой системы
-        log_path="C:/Users/79372/Desktop/konf/homework_1/log.xml",  # Указываем путь к лог-файлу
-        startup_script="C:/Users/79372/Desktop/konf/homework_1/startup_script.txt"  # Указываем путь к стартовому скрипту
+        vfs_path="Files.tar",  # Указываем путь к архиву виртуальной файловой системы
+        log_path="log.xml",  # Указываем путь к лог-файлу
+        startup_script="startup_script.txt"  # Указываем путь к стартовому скрипту
     )
     root.mainloop()  # Запускаем главный цикл приложения
