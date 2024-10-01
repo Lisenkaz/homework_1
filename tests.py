@@ -16,9 +16,9 @@ class TestCommandLineEmulator(unittest.TestCase):
         # Устанавливаем параметры для эмулятора
         self.username = "user"  # Имя пользователя
         self.hostname = "localhost"  # Имя компьютера
-        self.vfs_path = "C:/Users/79372/Desktop/konf/homework_1/Files.tar"  # Путь к архиву виртуальной файловой системы
-        self.log_path = "C:/Users/79372/Desktop/konf/homework_1/log.xml"  # Путь к лог-файлу
-        self.startup_script = "C:/Users/79372/Desktop/konf/homework_1/startup_script.txt"  # Путь к стартовому скрипту
+        self.vfs_path = "Files.tar"  # Путь к архиву виртуальной файловой системы
+        self.log_path = "log.xml"  # Путь к лог-файлу
+        self.startup_script = "startup_script.txt"  # Путь к стартовому скрипту
 
         # Создаем экземпляр эмулятора с необходимыми параметрами
         self.emulator = CommandLineEmulator(self.root, self.username, self.hostname, self.vfs_path, self.log_path, self.startup_script)
