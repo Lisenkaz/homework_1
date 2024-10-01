@@ -51,3 +51,26 @@
 •**wc(self)** - подсчёт числа строк, слов и символов в указанном файле
 
 •**run_startup_script(self)** - выполнение стартового скрипта
+
+<h2>Примеры использования</h2>
+
+Далее на рисунках представлены примеры использования команд.
+
+Команда ls
+![1](https://github.com/user-attachments/assets/59f3756b-fe01-47df-b518-02f9a42715f1)
+Команда ls
+![2](https://github.com/user-attachments/assets/17c0659c-22b3-4039-b450-10a02c964896)
+Команда cd
+![3](https://github.com/user-attachments/assets/be4a6f59-cc1f-4fba-b336-ff45be2b127a)
+Команда tree
+![4](https://github.com/user-attachments/assets/c8ef860b-8113-47e8-9450-92dffac7a6d9)
+Команда tree
+![5](https://github.com/user-attachments/assets/68a4c25c-cea5-41e1-a5f6-447f607bfb92)
+Команда tree
+![6](https://github.com/user-attachments/assets/3b863812-735b-4f11-9461-c4545ff24536)
+Команда mkdir
+![7](https://github.com/user-attachments/assets/7dfc5ce2-17a0-49c9-8f7c-c0e7d5611a57)
+Команда wc
+![8](https://github.com/user-attachments/assets/e7378671-9da8-46c5-a9d4-978f1469b8e6)
+
+
