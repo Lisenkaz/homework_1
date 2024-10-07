@@ -57,32 +57,26 @@
 Далее на рисунках представлены примеры использования команд.
 
 Команда ls
-![1](https://github.com/user-attachments/assets/59f3756b-fe01-47df-b518-02f9a42715f1)
-
-Команда ls
-![2](https://github.com/user-attachments/assets/17c0659c-22b3-4039-b450-10a02c964896)
+![1](https://github.com/user-attachments/assets/aa6ddcb8-6012-490b-9b79-6ecec8b28e93)
 
 Команда cd
-![3](https://github.com/user-attachments/assets/be4a6f59-cc1f-4fba-b336-ff45be2b127a)
+![2](https://github.com/user-attachments/assets/86e43555-b63b-4711-ac10-0e556ed5abc8)
 
 Команда tree
-![4](https://github.com/user-attachments/assets/c8ef860b-8113-47e8-9450-92dffac7a6d9)
-
-Команда tree
-![5](https://github.com/user-attachments/assets/68a4c25c-cea5-41e1-a5f6-447f607bfb92)
-
-Команда tree
-![6](https://github.com/user-attachments/assets/3b863812-735b-4f11-9461-c4545ff24536)
+![3](https://github.com/user-attachments/assets/b6bcb60d-b71d-4c83-918f-35f47262aa24)
 
 Команда mkdir
-![7](https://github.com/user-attachments/assets/7dfc5ce2-17a0-49c9-8f7c-c0e7d5611a57)
+![4](https://github.com/user-attachments/assets/92bdf00b-849b-4d42-ba35-381ab556f381)
+
 
 Команда wc
-![8](https://github.com/user-attachments/assets/e7378671-9da8-46c5-a9d4-978f1469b8e6)
+![5](https://github.com/user-attachments/assets/f8ca9d06-d039-41e3-a4f1-158894bf08b6)
+
 
 <h2>Результаты прогона тестов</h2>
 
 Все тесты были успешно пройдены
+![t](https://github.com/user-attachments/assets/450dea09-394e-49c8-8053-c30ada8531fc)
 
-![9](https://github.com/user-attachments/assets/4da83eb2-ceea-4bc8-bbc0-41d60afb970c)
+
 
