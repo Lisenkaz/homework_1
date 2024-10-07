@@ -19,9 +19,12 @@ class CommandLineEmulator:
         self.output_area.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)  # Упаковываем текстовое поле, чтобы оно занимало все доступное пространство
         
         # Создание поля для ввода команд
-        self.command_input = tk.Entry(self.frame, width=50, bg='black', fg='white')  # Поле ввода с черным фоном и белым текстом
+        self.command_input = tk.Entry(self.frame, width=50, bg='black', fg='white', insertbackground='white')   # Поле ввода с черным фоном и белым текстом
         self.command_input.pack(padx=10, pady=10, fill=tk.X)  # Упаковываем поле ввода, чтобы оно занимало всю ширину
         self.command_input.bind('<Return>', self.process_command)  # Привязываем нажатие Enter к обработке команды
+        
+        # Устанавливаем фокус на поле ввода команд
+        self.command_input.focus_set()  
         
         # Создание кнопки
         self.submit_button = tk.Button(root, text="Submit", command=self.process_command, bg='black', fg='white')  # Кнопка с черным фоном и белым текстом
@@ -32,7 +35,7 @@ class CommandLineEmulator:
         self.vfs_path = vfs_path  # Путь к архиву виртуальной файловой системы
         self.log_path = log_path  # Путь к лог-файлу
         self.startup_script = startup_script  # Путь к стартовому скрипту
-        self.current_directory = "/"  # Текущий каталог, изначально корневой
+        self.current_directory = "Files"  # Текущий каталог, изначально корневой
         # Создаем структуру для хранения содержимого tar файла
         self.files_in_vfs = {}  # Словарь для хранения файлов из tar
         self.load_files_from_tar()  # Загружаем файлы из tar
@@ -160,41 +163,44 @@ class CommandLineEmulator:
             self.output_area.insert(tk.END, f"tree: no such directory: {directory}\n")  # Сообщаем об ошибке
 
     def mkdir(self):
-        # Метод для реализации команды mkdir
         command_parts = self.command_input.get().strip().split(' ', 1)  # Разделяем ввод на команду и аргумент
         if len(command_parts) > 1:  # Проверяем, был ли указан новый путь
             new_directory = command_parts[1]  # Получаем имя новой директории
-            try:
-                # Формируем полный путь к новой директории
-                new_path = os.path.join(self.current_directory, new_directory)
-                os.makedirs(new_path)  # Создаем новую директорию
-                self.output_area.insert(tk.END, f"Directory '{new_directory}' created.\n")  # Подтверждаем создание
-            except FileExistsError:
-                # Если директория уже существует, выводим сообщение об ошибке
+            new_path = os.path.join(self.current_directory, new_directory)  # Формируем полный путь
+
+            # Проверяем, существует ли директория
+            if new_path in self.files_in_vfs:
                 self.output_area.insert(tk.END, f"mkdir: cannot create directory '{new_directory}': File exists\n")
-            except PermissionError:
-                # Если возникает ошибка доступа, выводим сообщение об ошибке
-                self.output_area.insert(tk.END, f"mkdir: cannot create directory '{new_directory}': Permission denied\n")
+                return
+
+            try:
+                os.makedirs(new_path)  # Создаем директорию на диске
+                # Обновляем виртуальную файловую систему
+                self.files_in_vfs[new_path] = tarfile.TarInfo(name=new_path)  # Добавляем новую директорию в словарь
+                self.output_area.insert(tk.END, f"Directory '{new_directory}' created.\n")  # Подтверждаем создание
+                self.log_action(f"mkdir: {new_directory}")  # Логируем действие
+            except FileExistsError:
+                self.output_area.insert(tk.END, f"mkdir: cannot create directory '{new_directory}': File exists\n")  # Сообщаем об ошибке
             except Exception as e:
-                # Обработка других ошибок
-                self.output_area.insert(tk.END, f"mkdir: error: {str(e)}\n")
+                self.output_area.insert(tk.END, f"mkdir: error: {str(e)}\n")  # Обработка других ошибок
         else:
-            # Если аргумент не был указан, выводим сообщение о необходимости указания имени директории
-            self.output_area.insert(tk.END, "mkdir: missing argument\n")
+            self.output_area.insert(tk.END, "mkdir: missing argument\n")  # Если аргумент не был указан, выводим сообщение
 
     def wc(self):
         # Метод для подсчета строк, слов и символов в файле
-        command_parts = self.command_input.get().strip().split(' ', 1)  # Разделяем команду на части
-        if len(command_parts) > 1:  # Если указан файл
-            file_name = command_parts[1]  # Сохраняем имя файла
+        command_parts = self.command_input.get().strip().split(' ', 1)  # Разделяем ввод на команду и аргумент
+        if len(command_parts) > 1:  # Проверяем, был ли указан файл
+            file_name = command_parts[1]  # Получаем имя файла
             if file_name in self.files_in_vfs and not self.files_in_vfs[file_name].isdir():  # Проверяем, существует ли файл
                 with tarfile.open(self.vfs_path, 'r') as tar:  # Открываем tar файл
                     file = tar.extractfile(file_name)  # Извлекаем файл
-                    content = file.read().decode('utf-8')  # Читаем содержимое файла
+                    content = file.read()  # Читаем содержимое файла (это уже строка)
                     lines = content.splitlines()  # Разделяем содержимое на строки
                     word_count = len(content.split())  # Подсчитываем количество слов
                     char_count = len(content)  # Подсчитываем количество символов
-                    self.output_area.insert(tk.END, f"{len(lines)} lines, {word_count} words, {char_count} characters in '{file_name}'\n")  # Выводим результаты
+                    
+                    # Выводим результаты в текстовое поле
+                    self.output_area.insert(tk.END, f"{len(lines)} lines, {word_count} words, {char_count} characters in '{file_name}'\n")
             else:
                 self.output_area.insert(tk.END, f"wc: {file_name}: No such file or directory\n")  # Сообщаем об ошибке
         else:
