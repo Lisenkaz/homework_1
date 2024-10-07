@@ -70,14 +70,21 @@ class CommandLineEmulator:
             self.output_area.insert(tk.END, f"{self.username}@{self.hostname}:{self.current_directory} $ {command}\n")  # Выводим команду
             
             # Проверяем, какая команда была введена
+            command_parts = command.split(' ', 1)  # Разделяем команду на первую часть (команда) и вторую (аргумент)
+            cmd = command_parts[0]  # Первая часть - это команда
+            arg = command_parts[1] if len(command_parts) > 1 else None  # Вторая часть - это аргумент, если он есть
+
             if command.startswith('cd '):
                 self.cd()  # Вызов метода cd
             elif command.startswith('ls'):
-                self.ls()  # Вызов метода ls
+                self.ls()                       
             elif command == 'exit':
                 self.exit()  # Вызов метода exit
-            elif command == 'tree':
-                self.tree()  # Вызов метода tree
+            elif cmd == 'tree':
+                if arg:  # Если аргумент указан, передаем его в метод tree
+                    self.tree(arg)
+                else:
+                    self.tree()  # Вызов метода tree без аргументов
             elif command.startswith('mkdir '):
                 self.mkdir()  # Вызов метода mkdir
             elif command.startswith('wc '):
@@ -128,36 +135,29 @@ class CommandLineEmulator:
         # Метод для выхода из эмулятора
         self.root.destroy()  # Закрываем графическое окно
         
-    def tree(self):
+        
+    def tree(self, directory=None, level=0):
         # Метод для реализации команды tree (отображение структуры каталогов и файлов)
-        try:
-            # Получаем список файлов и подкаталогов в текущей директории
-            entries = os.listdir(self.current_directory)
-        except PermissionError:
-            # Обрабатываем ошибку доступа
-            self.output_area.insert(tk.END, f"Permission denied: {self.current_directory}\n")
-            return
-        except Exception as e:
-            # Обрабатываем другие ошибки
-            self.output_area.insert(tk.END, f"Error accessing directory: {str(e)}\n")
-            return
+        # Если директория не указана, используем текущую директорию
+        if directory is None:
+            directory = self.current_directory
 
-        total_files = 0  # Счетчик для общего количества файлов
-        total_dirs = 0   # Счетчик для общего количества подкаталогов
-
-        # Выводим содержимое текущей директории
-        for entry in entries:
-            entry_path = os.path.join(self.current_directory, entry)  # Формируем полный путь к элементу
-            if os.path.isdir(entry_path):  # Если элемент является директорией
-                self.output_area.insert(tk.END, f"[{entry}]\n")  # Выводим имя директории
-                total_dirs += 1  # Увеличиваем счетчик подкаталогов
-            else:  # Если элемент является файлом
-                self.output_area.insert(tk.END, f"{entry}\n")  # Выводим имя файла
-                total_files += 1  # Увеличиваем счетчик файлов
-
-        # Выводим сводку
-        self.output_area.insert(tk.END, f"\nTotal directories: {total_dirs}\n")  # Общее количество подкаталогов
-        self.output_area.insert(tk.END, f"Total files: {total_files}\n")  # Общее количество файлов
+        # Проверяем, что указанная директория существует в виртуальной файловой системе
+        if directory in self.files_in_vfs and self.files_in_vfs[directory].isdir():
+            # Получаем элементы в указанной директории
+            entries = [name for name in self.files_in_vfs.keys() if os.path.dirname(name) == directory]
+            if not entries:
+                self.output_area.insert(tk.END, "No files found.\n")  # Если не найдено файлов
+                return
+            
+            for entry in entries:
+                # Отображаем элемент с отступом в зависимости от уровня вложенности
+                self.output_area.insert(tk.END, " " * (level * 4) + f"{entry}\n")
+                # Если элемент является директорией, рекурсивно вызываем tree для нее
+                if self.files_in_vfs[entry].isdir():
+                    self.tree(entry, level + 1)  # Увеличиваем уровень для вложенных директорий
+        else:
+            self.output_area.insert(tk.END, f"tree: no such directory: {directory}\n")  # Сообщаем об ошибке
 
     def mkdir(self):
         # Метод для реализации команды mkdir
