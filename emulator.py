@@ -33,7 +33,9 @@ class CommandLineEmulator:
         self.log_path = log_path  # Путь к лог-файлу
         self.startup_script = startup_script  # Путь к стартовому скрипту
         self.current_directory = "/"  # Текущий каталог, изначально корневой
-        self.load_vfs()  # Загружаем виртуальную файловую систему
+        # Создаем структуру для хранения содержимого tar файла
+        self.files_in_vfs = {}  # Словарь для хранения файлов из tar
+        self.load_files_from_tar()  # Загружаем файлы из tar
         self.commands = {  # Словарь доступных команд
             'ls': self.ls,
             'cd': self.cd,
@@ -44,11 +46,11 @@ class CommandLineEmulator:
         }
         self.run_startup_script()  # Запускаем стартовый скрипт
 
-    def load_vfs(self):
-        # Метод для загрузки виртуальной файловой системы
-        with tarfile.open(self.vfs_path, 'r') as tar:  # Открываем tar-архив
-            tar.extractall()  # Извлекаем все файлы из архива
-
+    def load_files_from_tar(self):
+        # Загружаем файлы из tar архива в словарь
+        with tarfile.open(self.vfs_path, 'r') as tar:  # Открываем tar файл
+            for member in tar.getmembers():  # Для каждого члена архива
+                self.files_in_vfs[member.name] = member  # Добавляем его в словарь
     def log_action(self, action):
         # Метод для логирования действий
         tree = ET.Element("log")  # Создаем корневой элемент XML
@@ -70,7 +72,7 @@ class CommandLineEmulator:
             # Проверяем, какая команда была введена
             if command.startswith('cd '):
                 self.cd()  # Вызов метода cd
-            elif command == 'ls':
+            elif command.startswith('ls'):
                 self.ls()  # Вызов метода ls
             elif command == 'exit':
                 self.exit()  # Вызов метода exit
@@ -88,36 +90,39 @@ class CommandLineEmulator:
             self.command_input.delete(0, tk.END)  # Очищаем поле ввода
 
     def ls(self):
-        # Метод для реализации команды ls
-        try:
-            files = os.listdir(self.current_directory)  # Получаем список файлов в текущем каталоге
-            self.output_area.insert(tk.END, "\n".join(files) + "\n")  # Выводим список файлов
-            self.log_action("ls")  # Логируем действие
-        except Exception as e:
-            self.output_area.insert(tk.END, str(e) + "\n")  # В случае ошибки выводим сообщение об ошибке
+        # Метод для отображения содержимого текущей директории или указанной директории
+        command_parts = self.command_input.get().strip().split(' ', 1)  # Разделяем команду на части
+        target_directory = self.current_directory  # По умолчанию используем текущую директорию
+
+        if len(command_parts) > 1:  # Если указана директория
+            target_directory = command_parts[1]  # Сохраняем указанную директорию
+
+        # Проверяем, существует ли указанная директория в виртуальной файловой системе
+        if target_directory in self.files_in_vfs and self.files_in_vfs[target_directory].isdir():
+            entries = [name for name in self.files_in_vfs.keys() if os.path.dirname(name) == target_directory]  # Получаем файлы в указанной директории
+            if not entries:
+                self.output_area.insert(tk.END, "No files found.\n")  # Если не найдено файлов
+            else:
+                self.output_area.insert(tk.END, "\n".join(entries) + "\n")  # Выводим файлы в области вывода
+        else:
+            self.output_area.insert(tk.END, f"ls: no such directory: {target_directory}\n")  # Сообщаем об ошибке
+
+        self.log_action("ls")  # Логируем действие
+            
+
 
     def cd(self):
-        # Метод для реализации команды cd
-        command_parts = self.command_input.get().strip().split(' ', 1)  # Разделяем ввод на команду и аргумент
-        if len(command_parts) > 1:  # Проверяем, был ли указан новый путь
-            new_directory = command_parts[1]  # Получаем путь к директории
-            try:
-                # Проверяем, является ли новый путь абсолютным или относительным
-                if os.path.isabs(new_directory):
-                    new_path = new_directory  # Если абсолютный путь, используем его
-                else:
-                    # Получаем абсолютный путь, комбинируя текущую директорию и новую
-                    new_path = os.path.abspath(os.path.join(self.current_directory, new_directory))
-                
-                if os.path.isdir(new_path):  # Проверяем, существует ли директория
-                    self.current_directory = new_path  # Обновляем текущую директорию
-                    self.output_area.insert(tk.END, f"Changed directory to: {self.current_directory}\n")
-                else:
-                    self.output_area.insert(tk.END, f"cd: no such file or directory: {new_directory}\n")
-            except Exception as e:
-                self.output_area.insert(tk.END, f"cd: error: {str(e)}\n")
+        # Метод для смены директории
+        command_parts = self.command_input.get().strip().split(' ', 1)  # Разделяем команду на части
+        if len(command_parts) > 1:  # Если указана новая директория
+            new_directory = command_parts[1]  # Сохраняем новую директорию
+            if new_directory in self.files_in_vfs and self.files_in_vfs[new_directory].isdir():  # Проверяем, существует ли директория
+                self.current_directory = new_directory  # Меняем текущую директорию
+                self.output_area.insert(tk.END, f"Changed directory to: {self.current_directory}\n")  # Выводим сообщение
+            else:
+                self.output_area.insert(tk.END, f"cd: no such directory: {new_directory}\n")  # Сообщаем об ошибке
         else:
-            self.output_area.insert(tk.END, "cd: missing argument\n")
+            self.output_area.insert(tk.END, "cd: missing argument\n")  # Сообщаем о недостатке аргументов
 
     def exit(self):
         # Метод для выхода из эмулятора
@@ -178,33 +183,22 @@ class CommandLineEmulator:
             self.output_area.insert(tk.END, "mkdir: missing argument\n")
 
     def wc(self):
-        # Метод для реализации команды wc
-        command_parts = self.command_input.get().strip().split(' ', 1)  # Разделяем ввод на команду и аргумент
-        if len(command_parts) > 1:  # Проверяем, был ли указан файл
-            file_name = command_parts[1]  # Получаем имя файла
-            try:
-                # Формируем полный путь к файлу
-                file_path = os.path.join(self.current_directory, file_name)
-                with open(file_path, 'r', encoding='utf-8') as f:  # Открываем файл для чтения с указанием кодировки
-                    content = f.read()  # Читаем содержимое файла
-                    lines = content.splitlines()  # Разбиваем содержимое на строки
+        # Метод для подсчета строк, слов и символов в файле
+        command_parts = self.command_input.get().strip().split(' ', 1)  # Разделяем команду на части
+        if len(command_parts) > 1:  # Если указан файл
+            file_name = command_parts[1]  # Сохраняем имя файла
+            if file_name in self.files_in_vfs and not self.files_in_vfs[file_name].isdir():  # Проверяем, существует ли файл
+                with tarfile.open(self.vfs_path, 'r') as tar:  # Открываем tar файл
+                    file = tar.extractfile(file_name)  # Извлекаем файл
+                    content = file.read().decode('utf-8')  # Читаем содержимое файла
+                    lines = content.splitlines()  # Разделяем содержимое на строки
                     word_count = len(content.split())  # Подсчитываем количество слов
                     char_count = len(content)  # Подсчитываем количество символов
-                    
-                    # Выводим результаты в текстовое поле
-                    self.output_area.insert(tk.END, f"{len(lines)} lines, {word_count} words, {char_count} characters in '{file_name}'\n")
-            except FileNotFoundError:
-                # Если файл не найден, выводим сообщение об ошибке
-                self.output_area.insert(tk.END, f"wc: {file_name}: No such file or directory\n")
-            except PermissionError:
-                # Если нет прав доступа к файлу, выводим сообщение об ошибке
-                self.output_area.insert(tk.END, f"wc: {file_name}: Permission denied\n")
-            except Exception as e:
-                # Обработка других ошибок, которые могут возникнуть
-                self.output_area.insert(tk.END, f"wc: error: {str(e)}\n")
+                    self.output_area.insert(tk.END, f"{len(lines)} lines, {word_count} words, {char_count} characters in '{file_name}'\n")  # Выводим результаты
+            else:
+                self.output_area.insert(tk.END, f"wc: {file_name}: No such file or directory\n")  # Сообщаем об ошибке
         else:
-            # Если аргумент не был указан, выводим сообщение о необходимости указания имени файла
-            self.output_area.insert(tk.END, "wc: missing argument\n")
+            self.output_area.insert(tk.END, "wc: missing argument\n")  # Сообщаем о недостатке аргументов
 
     def run_startup_script(self):
         # Метод для выполнения стартового скрипта
